@@ -57,7 +57,7 @@ app.post('/login', (req, res) => {
     });
 });
 
-// Refreshes the access token given the refresh token
+// Returns the updated refresh and access tokens given the refresh token
 // (required : refreshToken)
 app.post('/refresh-token', (req, res) => {
     const refreshToken = req.body.refreshToken;
