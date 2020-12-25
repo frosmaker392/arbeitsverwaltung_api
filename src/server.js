@@ -82,7 +82,7 @@ app.get('/auth-test', auth.authenticateToken, (req, res) => {
 
 // Default response for any other request
 app.use((req, res) => {
-    res.status(404);
+    res.sendStatus(404);
 });
 
 const server = app.listen(config.port, () => {

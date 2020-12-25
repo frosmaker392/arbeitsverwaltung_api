@@ -71,7 +71,7 @@ function refreshToken(token) {
 
     const allRefreshTokens = database.dbGetTokensBy('userId', user.id);
     if (!allRefreshTokens) {
-        throw new Error('There is no refresh token for this user');
+        throw new Error('Access is forbidden');
     }
 
     console.log(allRefreshTokens);
