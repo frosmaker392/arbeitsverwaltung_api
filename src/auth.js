@@ -22,6 +22,7 @@ function authenticateToken(req, res, next) {
         });
 }
 
+// Manual verification of the token, useful for client auth for web sockets
 function verifyToken(token) {
     return new Promise((resolve, reject) => {
         if (!token.startsWith('Bearer')) {
@@ -105,6 +106,7 @@ function getUpdatedRefreshToken(oldRToken, payload) {
 
 module.exports = {
     authenticateToken,
+    verifyToken,
     getAccessToken,
     getRefreshToken,
     refreshToken

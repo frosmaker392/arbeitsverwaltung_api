@@ -1,12 +1,12 @@
-const express = require('express');
+const app = require('express')();
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const url = require('url');
 
 const config = require('./config.json');
-const auth = require('./auth.js')
-const { register, authenticate } = require('./login_register.js');
-
-const app = express();
+const wsServer = require('./socket_server')
+const auth = require('./auth')
+const { register, authenticate } = require('./login_register');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -87,6 +87,27 @@ app.use((req, res) => {
 
 const server = app.listen(config.port, () => {
     console.log(`Listening from ${config.port}`);
+});
+
+server.on('upgrade', (req, socket, head) => {
+    const pathname = url.parse(req.url).pathname;
+    const authHeader = req.headers.authorization;
+
+    auth.verifyToken(authHeader)
+        .then(user => {
+            if(!user)
+                throw new Error('User is undefined');
+
+            if (pathname === '/sockets') {
+                wsServer.handleUpgrade(req, socket, head, ws => {
+                    wsServer.emit('connection', ws, req);
+                });
+            }
+
+        }).catch(err => {
+            socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+            socket.destroy();
+        });
 });
 
 module.exports = server;
