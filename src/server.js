@@ -1,32 +1,16 @@
 const app = require('express')();
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const ws = require('ws');
 const url = require('url');
 
 const config = require('./config.json');
-const auth = require('./auth.js')
-const { register, authenticate } = require('./login_register.js');
+const wsServer = require('./socket_server')
+const auth = require('./auth')
+const { register, authenticate } = require('./login_register');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
-
-const wsServer = new ws.Server({ noServer: true });
-
-wsServer.on('connection', ws => {
-    console.log("connection attempt");
-
-    ws.on('message', message => { 
-        console.log(message);
-        wsServer.clients.forEach( client => {
-            if (client.readyState === ws.OPEN) {
-                client.send(message);
-                console.log("Sending to all clients");
-            }
-        });
-    });
-});
 
 // Root endpoint
 app.get('/', (req, res, next) => {
