@@ -201,9 +201,11 @@ describe('POST /refresh-token', () => {
             .end((err, res) => {
                 res.should.have.status(403);
                 
-                res.body.should.have.property('msg');
-                res.body.msg.should.be.a('string');
-                res.body.msg.should.not.be.empty;
+                res.body.should.have.property('success');
+                res.body.should.have.property('message');
+                res.body.success.should.be.false;
+                res.body.message.should.be.a('string');
+                res.body.message.should.not.be.empty;
 
                 done();
             });
@@ -228,9 +230,11 @@ describe('POST /refresh-token', () => {
                 .end((err, res) => {
                     res.should.have.status(403);
 
-                    res.body.should.have.property('msg');
-                    res.body.msg.should.be.a('string');
-                    res.body.msg.should.not.be.empty;
+                    res.body.should.have.property('success');
+                    res.body.should.have.property('message');
+                    res.body.success.should.be.false;
+                    res.body.message.should.be.a('string');
+                    res.body.message.should.not.be.empty;
 
                     done();
                 });

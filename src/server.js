@@ -4,9 +4,11 @@ const cookieParser = require('cookie-parser');
 const url = require('url');
 
 const config = require('./config.json');
-const wsServer = require('./socket_server')
-const auth = require('./auth')
+const wsServer = require('./socket_server');
+const auth = require('./auth');
 const { register, authenticate } = require('./login_register');
+const { svr_logger } = require('./logger');
+const { responseObj } = require('./response');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -14,7 +16,7 @@ app.use(cookieParser());
 
 // Root endpoint
 app.get('/', (req, res, next) => {
-    res.json({ "message": "Ok" });
+    res.json(responseObj(true, "Ok"));
 });
 
 // Gives a response for a register attempt. If successful, the user would
@@ -24,12 +26,14 @@ app.post('/register', (req, res) => {
     const user = req.body;
 
     register(user).then( (response) => {
-        if (response.success)
+        if (response.success) {
+            svr_logger.info(`User ${response.message.email} registered successfully with id ${response.message.id}.`);
             res.redirect(307, '/login');
+        }
         else 
             res.json(response);
     }).catch(err => {
-        console.log(err);
+        svr_logger.error(err);
         res.sendStatus(501);
     });
 });
@@ -42,6 +46,8 @@ app.post('/login', (req, res) => {
 
     authenticate(user).then( response => {
         if (response.success) {
+            svr_logger.info(`User ${response.message.email} logged in successfully.`);
+
             // Response message should equal the user object now
             const accessToken = auth.getAccessToken(response.message);
             const refreshToken = auth.getRefreshToken(response.message);
@@ -52,7 +58,7 @@ app.post('/login', (req, res) => {
 
         res.json(response);
     }).catch( err => {
-        console.log(err);
+        svr_logger.error(err);
         res.sendStatus(501);
     });
 });
@@ -63,7 +69,7 @@ app.post('/refresh-token', (req, res) => {
     const refreshToken = req.body.refreshToken;
 
     if (!refreshToken) {
-        return res.status(403).json({ msg: 'Access is forbidden'});
+        return res.status(403).json(responseObj(false, "Access is forbidden."));
     }
 
     try {
@@ -71,13 +77,13 @@ app.post('/refresh-token', (req, res) => {
         res.json(newTokens);
     } catch (err) {
         const message = (err && err.message) || err;
-        res.status(403).json({ msg: message });
+        res.status(403).json(responseObj(false, message));
     }
 });
 
 // Some kind of testing route to check for authentication
 app.get('/auth-test', auth.authenticateToken, (req, res) => {
-    res.json({ success: true, message: "You are authenticated!" });
+    res.json(responseObj(true, "You are authenticated!"));
 });
 
 // Default response for any other request
@@ -89,6 +95,7 @@ const server = app.listen(config.port, () => {
     console.log(`Listening from ${config.port}`);
 });
 
+// Websockets route
 server.on('upgrade', (req, socket, head) => {
     const pathname = url.parse(req.url).pathname;
     const authHeader = req.headers.authorization;

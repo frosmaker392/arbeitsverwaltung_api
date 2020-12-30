@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken');
 const config = require('./config.json');
+const { responseObj } = require('./response')
 
-const database = require('./database.js')
+const database = require('./database');
+const { svr_logger } = require('./logger');
 
 // Middleware that parses the token using the secret and gets the user object from it
 // and sets the property in the request object
@@ -10,7 +12,7 @@ function authenticateToken(req, res, next) {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
-        res.status(401).json({ msg: 'Token is invalid' });
+        res.status(401).json( responseObj(false, 'Token is invalid') );
     }
 
     verifyToken(authHeader)
@@ -18,7 +20,7 @@ function authenticateToken(req, res, next) {
             req.user = user;
             next();
         }).catch(err => {
-            res.status(401).json( { msg: err });
+            res.status(401).json( responseObj(false, err) );
         });
 }
 
@@ -49,13 +51,10 @@ function getAccessToken(payload) {
 
 // Generates a long-living refresh token, and adds it to the database
 function getRefreshToken(payload) {
-    const userRefreshTokens = database.dbGetTokensBy('userId', payload.id);
+    // Deletes any existing refresh tokens corresponding with the user (capping the session amount to 1 per user)
+    database.dbDeleteTokensById(payload.id);
 
-    if (!userRefreshTokens || userRefreshTokens.length >= 5) {
-        database.dbDeleteTokensById(payload.id);
-    }
-
-    const refreshToken = jwt.sign({ user: payload }, config.secret, { expiresIn: '30d' });
+    const refreshToken = jwt.sign({ user: payload }, config.secret, { expiresIn: config.refreshTokenLife });
     database.dbAddToken(payload.id, refreshToken);
     
     return refreshToken;
@@ -70,16 +69,11 @@ function refreshToken(token) {
         throw new Error('Access is forbidden');
     }
 
-    const allRefreshTokens = database.dbGetTokensBy('userId', user.id);
-    if (!allRefreshTokens) {
-        throw new Error('Access is forbidden');
-    }
-
-    console.log(allRefreshTokens);
-
-    const currentRefreshToken = allRefreshTokens.find(rt => rt.refreshToken === token);
+    const currentRefreshToken = database.dbGetTokenBy('userId', user.id);
     if (!currentRefreshToken) {
-        throw new Error('Refresh token is wrong');
+        throw new Error('Access is forbidden');
+    } else if  (currentRefreshToken.refreshToken !== token) {
+        throw new Error('Refresh token is wrong')
     }
 
     const payload = {
@@ -89,6 +83,8 @@ function refreshToken(token) {
 
     const newRefreshToken = getUpdatedRefreshToken(token, payload);
     const newAccessToken = getAccessToken(payload);
+
+    svr_logger.info(`Session refreshed for user of id ${user.id}`);
     return {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken

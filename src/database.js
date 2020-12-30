@@ -1,4 +1,5 @@
 const Database = require('better-sqlite3');
+const { db_logger } = require('./logger');
 
 const inTesting = process.env.NODE_ENV === 'test';
 const DBSOURCE = inTesting ? ":memory:" : "db/db.sqlite";
@@ -6,7 +7,7 @@ const DBSOURCE = inTesting ? ":memory:" : "db/db.sqlite";
 if (inTesting)
     console.log("Database is in testing mode.");
 
-const db = new Database(DBSOURCE, { verbose: console.log });
+const db = new Database(DBSOURCE, { verbose: db_logger.info });
 
 try {
     db.prepare(`CREATE TABLE users (
@@ -32,7 +33,7 @@ try {
 } catch (err) {
     // Clear all sessions upon initialization
     db.prepare('DELETE FROM refresh').run();
-    console.log('Table has been created! Skipping db initialization');
+    console.log('Table already exists! Skipping db initialization');
 }
 
 // Returns the user object with variableName equal the variable
@@ -45,19 +46,16 @@ function dbAddUser(user) {
     const insert = db.prepare('INSERT INTO users (email, password, created_at) VALUES (?, ?, ?)');
     const info = insert.run(user.email, user.password, (new Date()).toUTCString());
 
-    console.log(`User ${user.email} successfully added with id ${info.lastInsertRowid}`);
-
     return { id: info.lastInsertRowid, email: user.email };
-}
-
-// Returns a list of all tokens with variableName equal variable
-function dbGetTokensBy(variableName, variable) {
-    return db.prepare(`SELECT * FROM refresh WHERE ${variableName} = ?`).all(variable);
 }
 
 function dbAddToken(userId, token) {
     const insert = db.prepare('INSERT INTO refresh (userId, refreshToken) VALUES (?, ?)');
     insert.run(userId, token);
+}
+
+function dbGetTokenBy(variableName, variable) {
+    return db.prepare(`SELECT * FROM refresh WHERE ${variableName} = ?`).get(variable);
 }
 
 function dbUpdateToken(oldToken, newToken) {
@@ -72,7 +70,7 @@ function dbDeleteTokensById(userId) {
 module.exports = {
     dbAddUser,
     dbGetUserBy,
-    dbGetTokensBy,
+    dbGetTokenBy,
     dbAddToken,
     dbUpdateToken,
     dbDeleteTokensById
