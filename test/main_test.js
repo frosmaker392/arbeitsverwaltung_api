@@ -3,8 +3,8 @@ process.env.NODE_ENV = 'test';
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const server = require('../src/server');
-const should = chai.should();
 
+chai.should();
 chai.use(chaiHttp);
 
 describe('POST /register', () => {
@@ -142,7 +142,7 @@ describe('POST /login', () => {
             });
     });
 
-})
+});
 
 describe('POST /refresh-token', () => {
 
@@ -239,6 +239,59 @@ describe('POST /refresh-token', () => {
                     done();
                 });
         }, 1500);
+    });
+
+});
+
+describe('GET /logout', () => {
+
+    // Access and refresh token variables
+    let tokens = {};
+
+    before((done) => {
+        const user = {
+            email: "logouttest@example.com",
+            password: "password",
+            passwordConfirmation: "password"
+        };
+
+        chai.request(server)
+            .post('/register')
+            .send(user)
+            .end((err, res) => {
+                tokens.ac = res.body.accessToken;
+                tokens.rf = res.body.refreshToken;
+
+                done();
+            });
+    });
+
+    it('logs out a user, then a token refresh attempt should be forbidden', (done) => {
+        chai.request(server)
+            .get('/logout')
+            .set('Authorization', 'Bearer ' + tokens.ac)
+            .end((err, res) => {
+                res.should.have.status(200);
+
+                res.body.should.have.property('success');
+                res.body.success.should.be.true;
+
+                done();
+            });
+
+        setTimeout(() => {
+            chai.request(server)
+            .post('/refresh-token')
+            .send({ refreshToken: tokens.rf })
+            .end((err, res) => {
+                res.should.have.status(403);
+                
+                res.body.should.have.property('success');
+                res.body.success.should.be.false;
+
+                done();
+            });
+        }, 1000);
     });
 
 });

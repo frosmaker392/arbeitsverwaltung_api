@@ -63,6 +63,13 @@ app.post('/login', (req, res) => {
     });
 });
 
+app.get('/logout', auth.authenticateToken, (req, res) => {
+    auth.deleteRefreshToken(req.user.id);
+
+    svr_logger.info(`User ${req.user.email} logged out successfully.`);
+    res.json(responseObj(true, "Logged out successfully!"));
+});
+
 // Returns the updated refresh and access tokens given the refresh token
 // (required : refreshToken)
 app.post('/refresh-token', (req, res) => {

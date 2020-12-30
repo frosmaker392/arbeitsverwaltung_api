@@ -100,10 +100,15 @@ function getUpdatedRefreshToken(oldRToken, payload) {
     return newRT;
 }
 
+function deleteRefreshToken(userId) {
+    database.dbDeleteTokensById(userId);
+}
+
 module.exports = {
     authenticateToken,
     verifyToken,
     getAccessToken,
     getRefreshToken,
-    refreshToken
+    refreshToken,
+    deleteRefreshToken
 };
