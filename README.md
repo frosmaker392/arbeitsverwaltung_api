@@ -24,7 +24,16 @@ Some routes require authorization via the 'Authorization' header. This can be de
 
 Responses would change later on in the future to be more standardized.
 
-## Usage
+A failed/error response should always be in this format :
+
+```
+{
+    "success": false,
+    "message": [error message]
+}
+```
+
+## Usage (API routes start with /api)
 
 - ### GET / 
 **Returns** -
@@ -37,59 +46,50 @@ Responses would change later on in the future to be more standardized.
 - ### POST /register
 **Expects** - email: string, password: string, passwordConfirmation: string
 
-**Returns** - on success :
+**Returns**
 ```
 {
     "success": true,
-    "context": login,
     "message": [the user object with id],
     "accessToken": [a long string],
     "refreshToken": [a long string]
-}
-```
-on failure :
-```
-{
-    "success": false,
-    "context": register,
-    "message": [error message],
 }
 ```
 
 - ### POST /login
 **Expects** - email: string, password: string
 
-**Returns** - on success : similar to register
+**Returns** - similar to register
 
-on failure :
+- ### GET /logout (auth)
+**Returns**
 ```
 {
-    "success": false,
-    "context": login,
-    "message": [error message],
+    "success": true,
+    "message": "Logged out successfully!"
 }
 ```
 
 - ### GET /auth-test (auth)
-**Returns** - on success :
+**Returns**
 ```
 {
     "success": true,
     "message": "You are authenticated!"
 }
 ```
-on failure : an error message
 
 - ### POST /refresh-token
 **Expects** - refreshToken: string
 
-**Returns** - on success : 
+**Returns** 
 ```
 {
+    "success": true,
+    "message": "",
     "accessToken": [a long string, different to the current access token],
     "refreshToken": [a long string, also different]
 }
 ```
-on failure : an error message
 
 **This documentation is not final and there will be changes in the future!**
