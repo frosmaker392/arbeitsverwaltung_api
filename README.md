@@ -7,9 +7,9 @@ Enjoy this mess from a beginner.
 
 ## Introduction
 
-Before starting the server, make sure an empty db folder is present and run `npm install`. Then run `npm run start` to launch the server.
+Before starting the server, make sure an empty db folder is present and run `npm install`. Then create a config.env file in the config folder and place all the necessary variables there (notably PORT, SECRET, ACCESS_TOKEN_LIFE and REFRESH_TOKEN_LIFE). Then run `npm run start` to launch the server.
 
-This API always sends out responses in JSON format and also expects POST requests with JSON in the request bodies (unless specified). Bad requests should also return a JSON object with the error message. By default, unrouted paths would always return a 404.
+This API always sends out responses in JSON format and also expects POST requests with JSON in the request bodies (unless specified). By default, unrouted paths would always return a 404.
 
 In the usage section below, routes are denoted firstly by the HTTP verb (like GET, POST, PUT), then followed by the path. POST requests have the 'expects' part, which only contain the required properties of the JSON object to be sent in with the POST request. Any other property would be ignored. For example, if a POST route expects *"email: string, password: string"*, then the JSON object attached with the request should be : 
 
@@ -39,7 +39,8 @@ A failed/error response should always be in this format :
 **Returns** -
 ```
 {
-    "message": "Ok"
+    "success": true,
+    "message": "Okay"
 }
 ```
 

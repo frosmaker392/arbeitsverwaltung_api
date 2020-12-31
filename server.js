@@ -1,7 +1,12 @@
 const dotenv = require('dotenv');
-dotenv.config({
+const loadResult = dotenv.config({
     path: './config/config.env'
 });
+
+if (loadResult.error) {
+    console.log('Cannot find the required config.env file! Shutting down...');
+    process.exit(1);
+}
 
 process.on('uncaughtException', err => {
     console.log('Uncaught exception detected!');
