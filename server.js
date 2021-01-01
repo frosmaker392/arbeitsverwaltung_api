@@ -14,14 +14,11 @@ process.on('uncaughtException', err => {
 });
 
 const app = require('./app');
-const handleSockets = require('./routes/socketRoutes');
 
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {
     console.log(`Listening from port ${port}`);
 });
-
-server.on('upgrade', handleSockets);
 
 process.on('unhandledRejection', err => {
     console.log('Unhandled rejection detected!');
