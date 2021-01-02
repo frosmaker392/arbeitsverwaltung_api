@@ -49,7 +49,7 @@ function login(req, res) {
 
 // Middleware, logs the user out, deleting the corresponding refresh key in the process.
 function logout(req, res) {
-    database.dbDeleteTokensById(req.user.id);
+    database.refreshTable.deleteById(req.user.id);
 
     svr_logger.info(`User ${req.user.email} logged out successfully.`);
     res.json(responseObj(true, "Logged out successfully!"));
@@ -85,12 +85,12 @@ function refreshToken(req, res) {
     try {
         const decoded = jwt.verify(token, process.env.SECRET);
 
-        user = database.dbGetUserBy('id', decoded.user.id);
+        user = database.usersTable.get('id', decoded.user.id);
         if (!user) {
             throw new Error('Access is forbidden');
         }
 
-        const existingRefreshToken = database.dbGetTokenBy('userId', user.id);
+        const existingRefreshToken = database.refreshTable.get('userId', user.id);
         if (!existingRefreshToken) {
             throw new Error('Access is forbidden');
         } else if  (existingRefreshToken.refreshToken !== token) {
@@ -110,7 +110,7 @@ function refreshToken(req, res) {
     const newRefreshToken = jwt.sign({ user: payload }, process.env.SECRET, { expiresIn: process.env.REFRESH_TOKEN_LIFE });
     const newAccessToken = getAccessToken(payload);
 
-    database.dbUpdateToken(token, newRefreshToken);
+    database.refreshTable.update(token, newRefreshToken);
 
     svr_logger.info(`Session refreshed for user of id ${user.id}`);
 
@@ -167,7 +167,7 @@ async function tryRegister(user) {
         const entry = { email: user.email, password: passwordHash };
 
         // Throws error if there is already a user with the same email
-        const addedUser = database.dbAddUser(entry);
+        const addedUser = database.usersTable.add(entry);
 
         return responseObj(true, addedUser);
     } catch (err) {
@@ -181,7 +181,7 @@ async function tryAuthenticate(user) {
     if (user.email === undefined || user.password === undefined)
         return responseObj(false, "API Error - expected fields are undefined!");
 
-    userFromDb = database.dbGetUserBy('email', user.email);
+    userFromDb = database.usersTable.get('email', user.email);
 
     if (userFromDb) {
         // Waits until the comparison has been made
@@ -206,10 +206,10 @@ function getAccessToken(payload) {
 // Generates a long-living refresh token, and adds it to the database
 function getRefreshToken(payload) {
     // Deletes any existing refresh tokens corresponding with the user (capping the session amount to 1 per user)
-    database.dbDeleteTokensById(payload.id);
+    database.refreshTable.deleteById(payload.id);
 
     const refreshToken = jwt.sign({ user: payload }, process.env.SECRET, { expiresIn: process.env.REFRESH_TOKEN_LIFE });
-    database.dbAddToken(payload.id, refreshToken);
+    database.refreshTable.add(payload.id, refreshToken);
     
     return refreshToken;
 }
