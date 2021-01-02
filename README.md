@@ -22,14 +22,11 @@ In the usage section below, routes are denoted firstly by the HTTP verb (like GE
 
 Some routes require authorization via the 'Authorization' header. This can be denoted with *(auth)* at the end of the route name listed below. These routes require an access token in the 'Authorization' header of the request to be processed.
 
-Responses would change later on in the future to be more standardized.
-
-A failed/error response should always be in this format :
+A failed/error response should always have a status code other than 200 and be in this format :
 
 ```
 {
-    "success": false,
-    "message": [error message]
+    "error": [error message]
 }
 ```
 
@@ -39,7 +36,6 @@ A failed/error response should always be in this format :
 **Returns** -
 ```
 {
-    "success": true,
     "message": "Okay"
 }
 ```
@@ -50,8 +46,7 @@ A failed/error response should always be in this format :
 **Returns**
 ```
 {
-    "success": true,
-    "message": [the user object with id],
+    "message": "Logged in successfully!",
     "accessToken": [a long string],
     "refreshToken": [a long string]
 }
@@ -66,7 +61,6 @@ A failed/error response should always be in this format :
 **Returns**
 ```
 {
-    "success": true,
     "message": "Logged out successfully!"
 }
 ```
@@ -75,7 +69,6 @@ A failed/error response should always be in this format :
 **Returns**
 ```
 {
-    "success": true,
     "message": "You are authenticated!"
 }
 ```
@@ -86,8 +79,6 @@ A failed/error response should always be in this format :
 **Returns** 
 ```
 {
-    "success": true,
-    "message": "",
     "accessToken": [a long string, different to the current access token],
     "refreshToken": [a long string, also different]
 }

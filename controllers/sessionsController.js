@@ -1,5 +1,5 @@
 const { svr_logger } = require("../utils/logger");
-const { responseObj } = require("../utils/response");
+const { responseObj, errorObj } = require("../utils/response");
 const getWeekYearAndDay = require("../utils/dateUtils");
 const { sessionsTable } = require("./dbController");
 
@@ -22,7 +22,7 @@ function createSession(request, response) {
             msg = "New session created"
         }
 
-        const out = responseObj(true, msg);
+        const out = responseObj(msg);
         out.session = entry;
         res.json(out);
     });
@@ -49,7 +49,7 @@ function updateSession(request, response) {
 // More or less a middleware but idk
 function handleExceptions(req, res, callback) {
     if (req.params.userId != req.user.id) {
-        res.status(401).json(responseObj(false, "Unauthorized access"));
+        res.status(401).json(errorObj("Unauthorized access"));
         return;
     }
 
@@ -60,7 +60,7 @@ function handleExceptions(req, res, callback) {
             throw err;
         }
 
-        res.status(400).json(responseObj(false, "Bad request : " + err.message));
+        res.status(400).json(errorObj("Bad request : " + err.message));
     }
 }
 
