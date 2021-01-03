@@ -20,7 +20,8 @@ router.get('/auth-test', (_, res) => {
     res.json(responseObj("You are authenticated!"));
 });
 
-router.post('/sessions/:userId', sessionsController.createSession);
-router.put('/sessions/:userId', sessionsController.updateSession);
+router.post('/sessions', sessionsController.createSession);
+router.put('/sessions', sessionsController.updateSession);
+router.get('/sessions/:weekYear', sessionsController.getSessionsForWeekYear);
 
 module.exports = router;
