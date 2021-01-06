@@ -15,7 +15,8 @@ function register(req, res) {
     tryRegister(user).then( addedUser => {
         svr_logger.info(`User ${addedUser.email} registered successfully with id ${addedUser.id}.`);
 
-        fs.mkdir(`./files/${addedUser.id}`, { recursive: true }, (err) => {
+        const filesPath = process.env.NODE_ENV === 'test' ? './filesTest' : './files';
+        fs.mkdir(`${filesPath}/${addedUser.id}`, { recursive: true }, (err) => {
             if (err)
                 throw err;
             svr_logger.info(`Folder created for user ${addedUser.id}`);
@@ -41,6 +42,7 @@ function login(req, res) {
         svr_logger.info(`User ${loggedInUser.email} logged in successfully.`);
         
         const response = responseObj("Logged in successfully!");
+        response.id = loggedInUser.id;
 
         // User should be in the form of { id, email }
         response.accessToken = getAccessToken(loggedInUser);
