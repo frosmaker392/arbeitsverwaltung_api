@@ -1,10 +1,10 @@
 const fs = require('fs').promises;
 const path = require('path');
 const root = require('../utils/root');
-const { errorObj } = require('../utils/response');
+const { errorObj, responseObj } = require('../utils/response');
 const { svr_logger } = require('../utils/logger');
 
-function handleDownloads(req, res) {
+module.exports = (req, res) => {
     if (req.params.userId != req.user.id)
         return res.status(401).json(errorObj("Unauthorized"));
     
@@ -15,6 +15,8 @@ function handleDownloads(req, res) {
 
         if (req.method === 'GET') 
             await getOrListFiles(res, p, stat);
+        else if (req.method === 'POST')
+            await uploadFiles(req, res, p, stat);
         else
             throw new Error("Not found");
     })().catch((err) => {
@@ -49,6 +51,29 @@ async function getOrListFiles(res, filepath, stat) {
     }
 }
 
-module.exports = {
-    handleDownloads
+async function uploadFiles(req, res, dirpath, stat) {
+    if (stat.isFile()) {
+        return res.status(400).json(errorObj("Invalid path"));
+    }
+    
+    try {
+        if (!req.files) {
+            res.json(responseObj("No files were uploaded"));
+        } else {
+            let filepaths = [];
+            
+            req.files.toUpload.forEach(file => {
+                file.mv(dirpath + '/' + file.name);
+                filepaths.push(req.path + file.name);
+            });
+
+            res.json({
+                message: `${filepaths.length} files uploaded`,
+                details: filepaths
+            });
+        }
+    } catch (err) {
+        svr_logger.error(err.stack);
+        res.status(500).json(errorObj(err.message));
+    }
 }
