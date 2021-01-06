@@ -10,6 +10,10 @@ chai.use(chaiHttp);
 
 describe('POST /api/register', () => {
 
+    before(async () => {
+        await helper.clearFilesTest();
+    });
+
     it('should register with correct details, and login immediately', (done) => {
         const user = {
             email: "test3@example.com",
@@ -24,15 +28,20 @@ describe('POST /api/register', () => {
 
                 // Property checks
                 res.body.should.have.property('message');
+                res.body.should.have.property('id');
                 res.body.should.have.property('accessToken');
                 res.body.should.have.property('refreshToken');
 
                 // Property value and type checks
                 res.body.message.should.be.a('string');
+                res.body.id.should.be.a('number');
                 res.body.accessToken.should.be.a('string');
                 res.body.accessToken.should.not.be.empty;
                 res.body.refreshToken.should.be.a('string');
                 res.body.refreshToken.should.not.be.empty;
+                
+                // There should exist a folder under filesTest
+                helper.checkIfDirectoryExists(`filesTest/${res.body.id}`).should.be.true;
 
                 done();
             });
