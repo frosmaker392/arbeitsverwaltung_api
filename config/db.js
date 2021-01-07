@@ -2,13 +2,17 @@ const Database = require('better-sqlite3');
 const { db_logger } = require('../utils/logger');
 const fs = require('fs');
 
-const dbPath = "./db/db.sqlite";
-if (!fs.existsSync(dbPath + '/..')) {
-    fs.mkdirSync(dbPath + '/..');
-}
-
 const inTesting = process.env.NODE_ENV === 'test';
-const DBSOURCE = inTesting ? ":memory:" : dbPath;
+let DBSOURCE = ":memory:";
+
+if (inTesting) {
+    const dbPath = "./db/db.sqlite";
+    if (!fs.existsSync(dbPath + '/..')) {
+        fs.mkdirSync(dbPath + '/..');
+    }
+
+    DBSOURCE = dbPath;
+}
 
 if (inTesting)
     console.log("Database is in testing mode.");
