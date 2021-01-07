@@ -23,11 +23,14 @@ router.get('/auth-test', (_, res) => {
     res.json(responseObj("You are authenticated!"));
 });
 
-router.use(fileUpload());
-router.use('/files/:userId', filesController);
-
 router.post('/sessions', sessionsController.createSession);
 router.put('/sessions', sessionsController.updateSession);
 router.get('/sessions/:weekYear', sessionsController.getSessionsForWeekYear);
+
+router.use(fileUpload());
+router.get('/files/:userId', filesController.getFiles);
+router.post('/files/:userId', filesController.postFiles);
+router.get('/calendar/:userId', filesController.getCalendar);
+router.post('/calendar/:userId', filesController.postCalendar);
 
 module.exports = router;
