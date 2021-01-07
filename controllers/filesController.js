@@ -10,17 +10,17 @@ if (!fsSync.existsSync(calendarDirPath)) {
 }
 
 module.exports = {
-    getFiles: (req, res) => {
+    handleFiles: (req, res) => {
         validateAndRun(req, res, async () => {
-            const p = path.join(__dirname, '..', req.path);
-            await getOrListFiles(res, p);
+            const p = path.join(__dirname, `..\\files\\${req.user.id}`, req.path);
+
+            if (req.method === 'GET')
+                await getOrListFiles(res, p);
+            else if (req.method === 'POST')
+                await uploadFiles(req, res, p);
+            else
+                return res.status(404).json(errorObj('Not found'));
         }, `Cannot find file/directory ${req.path}`);
-    },
-    postFiles: (req, res) => {
-        validateAndRun(req, res, async () => {
-            const p = path.join(__dirname, '..', req.path);
-            await uploadFiles(req, res, p);
-        }, `Cannot find directory ${req.path}`);
     },
     getCalendar: (req, res) => {
         validateAndRun(req, res, async () => {
@@ -50,7 +50,7 @@ function validateAndRun(req, res, callback, notFoundError) {
         if (err.code === 'ENOENT') {
             res.status(404).json(errorObj(notFoundError));
         } else {
-            svr_logger.error(err.message);
+            svr_logger.error(err.stack);
             res.status(500).json(errorObj(err.message));
         }
     });
@@ -81,37 +81,30 @@ async function getOrListFiles(res, filepath) {
 }
 
 async function uploadFiles(req, res, dirpath, newFilename = "") {
-    const stat = await fs.lstat(dirpath);
-
-    if (stat.isFile()) {
-        return res.status(400).json(errorObj("Invalid path"));
+    if(!fsSync.existsSync(dirpath)) {
+        await fs.mkdir(dirpath, { recursive: true });
     }
-    
-    try {
-        if (!req.files) {
-            res.json(responseObj("No files were uploaded"));
-        } else {
-            let filepaths = [];
-            const moveFileCallback = (file) => {
-                const filename = newFilename === "" ? file.name : newFilename;
 
-                file.mv(dirpath + '/' + filename);
-                filepaths.push(req.path + filename);
-            }
+    if (!req.files) {
+        res.json(responseObj("No files were uploaded"));
+    } else {
+        let filepaths = [];
+        const moveFileCallback = (file) => {
+            const filename = newFilename === "" ? file.name : newFilename;
 
-            if (Array.isArray(req.files.toUpload)) {
-                req.files.toUpload.forEach(moveFileCallback);
-            } else {
-                moveFileCallback(req.files.toUpload);
-            }
-
-            res.json({
-                message: `${filepaths.length} ${filepaths.length == 1 ? 'file' : 'files'} uploaded`,
-                details: filepaths
-            });
+            file.mv(dirpath + '/' + filename);
+            filepaths.push(req.path + '/' + filename);
         }
-    } catch (err) {
-        svr_logger.error(err.stack);
-        res.status(500).json(errorObj(err.message));
+
+        if (Array.isArray(req.files.toUpload)) {
+            req.files.toUpload.forEach(moveFileCallback);
+        } else {
+            moveFileCallback(req.files.toUpload);
+        }
+
+        res.json({
+            message: `${filepaths.length} ${filepaths.length == 1 ? 'file' : 'files'} uploaded`,
+            details: filepaths
+        });
     }
 }

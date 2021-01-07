@@ -28,9 +28,8 @@ router.put('/sessions', sessionsController.updateSession);
 router.get('/sessions/:weekYear', sessionsController.getSessionsForWeekYear);
 
 router.use(fileUpload());
-router.get('/files/:userId', filesController.getFiles);
-router.post('/files/:userId', filesController.postFiles);
 router.get('/calendar/:userId', filesController.getCalendar);
 router.post('/calendar/:userId', filesController.postCalendar);
+router.use('/files/:userId', filesController.handleFiles);
 
 module.exports = router;
