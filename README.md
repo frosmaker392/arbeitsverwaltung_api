@@ -33,7 +33,7 @@ A failed/error response should always have a status code other than 200 and be i
 ## Usage (API routes start with /api)
 
 - ### GET / 
-**Returns** -
+**Returns**
 ```
 {
     "message": "Okay"
@@ -82,6 +82,52 @@ A failed/error response should always have a status code other than 200 and be i
     "accessToken": [a long string, different to the current access token],
     "refreshToken": [a long string, also different]
 }
+```
+
+- ### POST /sessions (auth)
+Creates a session in the database. If it already exists for that date then return that session instead.
+
+**Expects** - date: string (format: yyyy-mm-dd)
+
+**Returns**
+```
+{
+    "message": [some message],
+    "session": {
+        // Session object with active and inactive durations
+    }
+}
+```
+
+- ### PUT /sessions (auth)
+Updates the session in the database only if it exists for that date.
+
+**Expects** - date: string (format: yyyy-mm-dd), activeDuration: integer, inactiveDuration: integer
+
+**Returns**
+```
+204 No content
+```
+
+- ### GET /sessions/:weekYear (auth)
+Gets a list of sessions in the specified weekYear
+
+**Expects** - weekYear param (format: ww-yyyy)
+
+**Returns**
+```
+{
+    "sessions": [
+        // Array of session objects
+    ]
+}
+```
+
+- ### GET /calendar/:userId (auth)
+
+**Returns**
+```
+calendar json file of the user (if it exists)
 ```
 
 **This documentation is not final and there will be changes in the future!**
