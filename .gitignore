@@ -1,6 +1,5 @@
 /node_modules
 /db
 /logs
-/config/config.env
 /files
 /filesTest

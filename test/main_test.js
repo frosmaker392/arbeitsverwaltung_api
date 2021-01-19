@@ -385,7 +385,7 @@ describe('/api/sessions/', () => {
             res.body.should.be.a('object');
             res.body.should.have.property('sessions');
             res.body.sessions.should.be.a('array');
-            res.body.sessions.should.have.lengthOf(1);
+            res.body.sessions.should.have.lengthOf(2);
 
             res.body.sessions[0].should.be.a('object');
 
@@ -398,7 +398,7 @@ describe('/api/sessions/', () => {
             res2.body.should.be.a('object');
             res2.body.should.have.property('sessions');
             res2.body.sessions.should.be.a('array');
-            res2.body.sessions.should.have.lengthOf(6);
+            res2.body.sessions.should.have.lengthOf(5);
             
         });
 
